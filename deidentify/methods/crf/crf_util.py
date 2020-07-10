@@ -3,9 +3,9 @@ import pickle
 from collections import Counter
 from os.path import join
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.backends.backend_pdf import PdfPages
+#from matplotlib.backends.backend_pdf import PdfPages
 from sklearn_crfsuite import metrics
 
 from deidentify.methods.crf import crf_labeler
@@ -77,32 +77,32 @@ def _print_state_features(state_features, file):
         print("{:.4f} {:<25} {}".format(weight, label, attr), file=file)
 
 
-def plot_random_search_parameter_pair(out_file, cv_results, param_x, param_y, title=None):
-    _x = [run[param_x] for run in cv_results['params']]
-    _y = [run[param_y] for run in cv_results['params']]
-    _c = cv_results['mean_test_score']
-
-    fig = plt.figure()
-    ax = plt.gca()
-    ax.set_yscale('log')
-    ax.set_xscale('log')
-    ax.set_xlabel(param_x)
-    ax.set_ylabel(param_y)
-
-    if not title:
-        title = "Random Search Results\n(min={:0.3}, max={:0.3})".format(min(_c), max(_c))
-    plt.title(title, loc='left')
-
-    sc = ax.scatter(_x, _y, c=_c, s=25, alpha=0.9, edgecolor='black', cmap='YlGnBu')
-    ix, _ = max(enumerate(_c), key=operator.itemgetter(1))
-    plt.scatter(_x[ix], _y[ix], c='r', marker='*', s=40)
-
-    plt.colorbar(sc)
-    ax.set_axisbelow(True)
-    plt.grid()
-
-    with PdfPages(out_file) as pdf:
-        pdf.savefig(fig, bbox_inches='tight')
+#def plot_random_search_parameter_pair(out_file, cv_results, param_x, param_y, title=None):
+#    _x = [run[param_x] for run in cv_results['params']]
+#    _y = [run[param_y] for run in cv_results['params']]
+#    _c = cv_results['mean_test_score']
+#
+#    fig = plt.figure()
+#    ax = plt.gca()
+#    ax.set_yscale('log')
+#    ax.set_xscale('log')
+#    ax.set_xlabel(param_x)
+#    ax.set_ylabel(param_y)
+#
+#    if not title:
+#        title = "Random Search Results\n(min={:0.3}, max={:0.3})".format(min(_c), max(_c))
+#    plt.title(title, loc='left')
+#
+#    sc = ax.scatter(_x, _y, c=_c, s=25, alpha=0.9, edgecolor='black', cmap='YlGnBu')
+#    ix, _ = max(enumerate(_c), key=operator.itemgetter(1))
+#    plt.scatter(_x[ix], _y[ix], c='r', marker='*', s=40)
+#
+#    plt.colorbar(sc)
+#    ax.set_axisbelow(True)
+#    plt.grid()
+#
+#    with PdfPages(out_file) as pdf:
+#        pdf.savefig(fig, bbox_inches='tight')
 
 
 def save_rs_results(rs_results, model_dir):
