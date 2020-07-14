@@ -10,6 +10,13 @@ You can get the authors' version of the paper from this link: [paper](https://ar
 
 ## Quick Start
 
+### Docker
+
+To run the demo script from within a Docker container, download one of the pre-trained models (e.g. [this one](https://github.com/nedap/deidentify/releases/tag/model_bilstmcrf_ons_fast-v0.1.0)) to a new directory named "models", and unzip it. Then run:
+
+    docker build . -t deidentify
+    docker run -it -v $(pwd)/models:/app/models -p 8080:8080 deidentify
+
 ### Installation
 
 Create a new virtual environment with an environment manager of your choice. Then, install `deidentify`:
