@@ -24,14 +24,13 @@ RUN conda install -y -c conda-forge sklearn-crfsuite=0.3.6
 RUN conda install -y -c pytorch pytorch=1.3.0
 RUN conda install -y unidecode=1.0.23
 RUN conda install -y pandas=0.23.4
+RUN pip install flair==0.4.3
+RUN python -m spacy download nl_core_news_sm
 
 WORKDIR /app/
 
 COPY deidentify/ deidentify/
-RUN python -m deidentify.util.download_model model_bilstmcrf_ons_fast-v0.1.0
+#RUN python -m deidentify.util.download_model model_bilstmcrf_ons_fast-v0.1.0
 COPY demo.py .
-
-RUN pip install flair==0.4.3
-RUN python -m spacy download nl_core_news_sm
 
 CMD ["bash"]

@@ -15,7 +15,7 @@ documents = [
 ]
 
 # Select downloaded model
-model = 'model_bilstmcrf_ons_fast-v0.1.0'
+model = 'models/model_bilstmcrf_ons_fast-v0.1.0/final-model.pt'
 
 # Instantiate tokenizer
 tokenizer = TokenizerFactory().tokenizer(corpus='ons', disable=("tagger", "ner"))
