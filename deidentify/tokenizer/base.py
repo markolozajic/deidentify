@@ -25,18 +25,11 @@ class Tokenizer(ABC):
 
 
 class TokenizerFactory():
-    """Construct tokenizer instance per corpus. Currently, only the 'ons' corpus uses a custom
-    spaCy tokenizer.
-
-    For all other corpora, a wrapper around the default English spaCy tokenizer is used.
-    """
+    """Construct tokenizer instance per corpus. Use default German spaCy tokenizer."""
 
     @staticmethod
-    def tokenizer(corpus: str, disable: Iterable[str] = ()):
+    def tokenizer(corpus: str, disable: Iterable[str] = (), model: str = 'de_core_news_sm'):
         logger.info('Tokenizer for corpus: {}'.format(corpus))
-        if corpus.startswith('ons'):
-            from deidentify.tokenizer.tokenizer_ons import TokenizerOns
-            return TokenizerOns(disable=disable)
 
-        from deidentify.tokenizer.tokenizer_en import TokenizerEN
-        return TokenizerEN(disable=disable)
+        from deidentify.tokenizer.tokenizer_de import TokenizerDE
+        return TokenizerDE(disable=disable)

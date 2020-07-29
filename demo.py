@@ -1,12 +1,13 @@
 from deidentify.base import Document
 from deidentify.taggers import FlairTagger
 from deidentify.tokenizer import TokenizerFactory
+import spacy
 
 # Create some text
 text = (
-    "Dit is stukje tekst met daarin de naam Jan Jansen. De patient J. Jansen (e: "
-    "j.jnsen@email.com, t: 06-12345678) is 64 jaar oud en woonachtig in Utrecht. Hij werd op 10 "
-    "oktober door arts Peter de Visser ontslagen van de kliniek van het UMCU."
+    "Dies ist ein Textstück mit dem Namen Jan Jansen. Der Patient J. Jansen (e: "
+    "j.jnsen@email.com, t: 06-12345678) ist 64 Jahre alt und lebt in Utrecht. Er war am 10."
+    "Oktober von Arzt Peter de Visser aus der UMCU-Klinik entlassen."
 )
 
 # Wrap text in document
@@ -17,8 +18,10 @@ documents = [
 # Select downloaded model
 model = 'models/model_bilstmcrf_ons_fast-v0.1.0/final-model.pt'
 
+nlp = spacy.load('de_core_news_sm')
+
 # Instantiate tokenizer
-tokenizer = TokenizerFactory().tokenizer(corpus='ons', disable=("tagger", "ner"))
+tokenizer = TokenizerFactory().tokenizer(corpus='germeval', disable=("tagger", "ner"), model=nlp)
 
 # Load tagger with a downloaded model file and tokenizer
 tagger = FlairTagger(model=model, tokenizer=tokenizer, verbose=False)
@@ -37,3 +40,8 @@ from deidentify.util import mask_annotations
 
 masked_doc = mask_annotations(first_doc)
 print(masked_doc.text)
+
+ners = nlp(text)
+
+for ent in ners.ents:
+	print(ent.text, ent.start_char, ent.end_char, ent.label_)

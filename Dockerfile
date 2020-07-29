@@ -25,7 +25,7 @@ RUN conda install -y -c pytorch pytorch=1.3.0
 RUN conda install -y unidecode=1.0.23
 RUN conda install -y pandas=0.23.4
 RUN pip install flair==0.4.3
-RUN python -m spacy download nl_core_news_sm
+RUN python -m spacy download de_core_news_sm
 
 WORKDIR /app/
 
