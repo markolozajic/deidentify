@@ -1,4 +1,4 @@
-from deidentify.base import Document
+from deidentify.base import Document, Annotation
 from deidentify.taggers import FlairTagger
 from deidentify.tokenizer import TokenizerFactory
 import spacy
@@ -27,21 +27,36 @@ tokenizer = TokenizerFactory().tokenizer(corpus='germeval', disable=("tagger", "
 tagger = FlairTagger(model=model, tokenizer=tokenizer, verbose=False)
 
 # Annotate your documents
-annotated_docs = tagger.annotate(documents)
+annotated_doc = tagger.annotate(documents)[0]
 
+# print(annotated_doc)
+# print(annotated_doc.annotations)
 
-from pprint import pprint
-
-first_doc = annotated_docs[0]
-pprint(first_doc.annotations)
-
-
-from deidentify.util import mask_annotations
-
-masked_doc = mask_annotations(first_doc)
-print(masked_doc.text)
-
+# Spacy NER extraction
 ners = nlp(text)
 
+filtered_annotations = []
+
 for ent in ners.ents:
-	print(ent.text, ent.start_char, ent.end_char, ent.label_)
+    filtered_annotations.append({"text": ent.text, "start": ent.start_char, "end": ent.end_char,
+                            "tag": ent.label_})
+
+for ann in annotated_doc.annotations:
+    # don't add the entity if it overlaps with SpaCy's - SpaCy makes fewer mistakes
+    if True in [ent.start_char <= ann.end <= ent.end_char for ent in ners.ents] or \
+        True in [ann.start <= ent.end_char <= ann.end for ent in ners.ents]:
+        continue
+    filtered_annotations.append({"text": ann.text, "start": ann.start, "end": ann.start, 
+                                "tag": ann.tag})
+filtered_annotations.sort(key=lambda x: x["start"])
+
+for f in filtered_annotations:
+    print(f)
+
+# from deidentify.util import mask_annotations
+
+# masked_doc = mask_annotations(annotated_doc)
+# print(masked_doc.text)
+
+
+
