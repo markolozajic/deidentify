@@ -1,62 +1,67 @@
 from deidentify.base import Document, Annotation
 from deidentify.taggers import FlairTagger
 from deidentify.tokenizer import TokenizerFactory
+from deidentify.util import mask_annotations
+
 import spacy
+import sys
 
-# Create some text
-text = (
-    "Dies ist ein Textstück mit dem Namen Jan Jansen. Der Patient J. Jansen (e: "
-    "j.jnsen@email.com, t: 06-12345678) ist 64 Jahre alt und lebt in Utrecht. Er war am 10."
-    "Oktober von Arzt Peter de Visser aus der UMCU-Klinik entlassen."
-)
+def anonymize(input_file):
 
-# Wrap text in document
-documents = [
-    Document(name='doc_01', text=text)
-]
+    with open(input_file, "r", encoding="utf-8") as f:
+        text = f.read()
 
-# Select downloaded model
-model = 'models/model_bilstmcrf_ons_fast-v0.1.0/final-model.pt'
+    # Wrap text in document
+    documents = [
+        Document(name='doc_01', text=text)
+    ]
 
-nlp = spacy.load('de_core_news_sm')
+    # Select downloaded model
+    model = 'models/model_bilstmcrf_ons_fast-v0.1.0/final-model.pt'
 
-# Instantiate tokenizer
-tokenizer = TokenizerFactory().tokenizer(corpus='germeval', disable=("tagger", "ner"), model=nlp)
+    nlp = spacy.load('de_core_news_sm')
 
-# Load tagger with a downloaded model file and tokenizer
-tagger = FlairTagger(model=model, tokenizer=tokenizer, verbose=False)
+    # Instantiate tokenizer
+    tokenizer = TokenizerFactory().tokenizer(corpus='germeval', disable=("tagger", "ner"), model=nlp)
 
-# Annotate your documents
-annotated_doc = tagger.annotate(documents)[0]
+    # Load tagger with a downloaded model file and tokenizer
+    tagger = FlairTagger(model=model, tokenizer=tokenizer, verbose=False)
 
-# print(annotated_doc)
-# print(annotated_doc.annotations)
+    # Annotate your documents
+    annotated_doc = tagger.annotate(documents)[0]
 
-# Spacy NER extraction
-ners = nlp(text)
+    # Spacy NER extraction
+    ners = nlp(text)
 
-filtered_annotations = []
+    filtered_annotations = []
 
-for ent in ners.ents:
-    filtered_annotations.append({"text": ent.text, "start": ent.start_char, "end": ent.end_char,
-                            "tag": ent.label_})
+    # Dict for storing SpaCy and deidentify tag correspondences
+    tag_dict = {"PER": "Name", "LOC": "Address", "ORG": "Organization_Company", "MISC": "Other"}
 
-for ann in annotated_doc.annotations:
-    # don't add the entity if it overlaps with SpaCy's - SpaCy makes fewer mistakes
-    if True in [ent.start_char <= ann.end <= ent.end_char for ent in ners.ents] or \
-        True in [ann.start <= ent.end_char <= ann.end for ent in ners.ents]:
-        continue
-    filtered_annotations.append({"text": ann.text, "start": ann.start, "end": ann.start, 
-                                "tag": ann.tag})
-filtered_annotations.sort(key=lambda x: x["start"])
+    # Add all SpaCy-detected NEs to list
+    for ent in ners.ents:
+        filtered_annotations.append({"text": ent.text, "start": ent.start_char, "end": ent.end_char,
+                                "tag": tag_dict[ent.label_]})
 
-for f in filtered_annotations:
-    print(f)
+    for ann in annotated_doc.annotations:
+        # discard names; they have a high likelihood of false positives since
+        # nouns are capitalized in German, unlike in Dutch
+        if ann.tag == "Name":
+            continue
+        # don't add the entity if it overlaps with SpaCy's - SpaCy makes fewer mistakes
+        if True in [ent.start_char <= ann.end <= ent.end_char for ent in ners.ents] or \
+            True in [ann.start <= ent.end_char <= ann.end for ent in ners.ents]:
+            continue
+        filtered_annotations.append({"text": ann.text, "start": ann.start, "end": ann.end, 
+                                    "tag": ann.tag})
 
-# from deidentify.util import mask_annotations
+    filtered_annotations.sort(key=lambda x: x["start"])
 
-# masked_doc = mask_annotations(annotated_doc)
-# print(masked_doc.text)
+    masked_output = mask_annotations(annotated_doc.text, filtered_annotations)
+    print(masked_output)
 
 
+if __name__ == "__main__":
+    input_file = sys.argv[1]
+    anonymize(input_file)
 

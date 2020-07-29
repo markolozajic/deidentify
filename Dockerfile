@@ -32,5 +32,6 @@ WORKDIR /app/
 COPY deidentify/ deidentify/
 #RUN python -m deidentify.util.download_model model_bilstmcrf_ons_fast-v0.1.0
 COPY demo.py .
+COPY data/example_de.txt .
 
 CMD ["bash"]

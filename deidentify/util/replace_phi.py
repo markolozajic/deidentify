@@ -1,30 +1,10 @@
-from typing import Callable
 
-from deidentify.base import Annotation, Document
-
-
-def _uppercase_formatter(annotation: Annotation):
-    return '[{}]'.format(annotation.tag.upper())
+def _uppercase_formatter(annotation):
+    return '[{}]'.format(annotation["tag"].upper())
 
 
-def mask_annotations(document: Document,
-                     replacement_formatter: Callable[[Annotation], str] = _uppercase_formatter
-                     ) -> Document:
-    """Utility function to replace sensitive PHI spans with a placeholder.
-
-    Parameters
-    ----------
-    document : Document
-        The document whose PHI annotations should be replaced.
-    replacement_formatter : Callable[[Annotation], str]
-        A callable that can be used to configure the formatting of the replacement.
-        The default formatter replaces an annotation with `[annotation.tag.upper()]`.
-
-    Returns
-    -------
-    Document
-        The document with masked annotations.
-    """
+def mask_annotations(doc_text, annotations, replacement_formatter = _uppercase_formatter):
+    """Utility function to replace sensitive PHI spans with a placeholder."""
     # Amount of characters by which start point of annotation is adjusted
     # Positive shift if replacement is longer than original annotation
     # Negative shift if replacement is shorter
@@ -34,21 +14,16 @@ def mask_annotations(document: Document,
     text_rewritten = ''
     annotations_rewritten = []
 
-    for annotation in document.annotations:
+    for annotation in annotations:
         replacement = replacement_formatter(annotation)
-        part = document.text[original_text_pointer:annotation.start]
+        part = doc_text[original_text_pointer:annotation["start"]]
 
-        start = annotation.start + shift
+        start = annotation["start"] + shift
         end = start + len(replacement)
-        shift += len(replacement) - len(annotation.text)
+        shift += len(replacement) - len(annotation["text"])
 
         text_rewritten += part + replacement
-        original_text_pointer = annotation.end
-        annotations_rewritten.append(annotation._replace(
-            start=start,
-            end=end,
-            text=replacement
-        ))
+        original_text_pointer = annotation["end"]
 
-    text_rewritten += document.text[original_text_pointer:]
-    return Document(name=document.name, text=text_rewritten, annotations=annotations_rewritten)
+    text_rewritten += doc_text[original_text_pointer:]
+    return text_rewritten
