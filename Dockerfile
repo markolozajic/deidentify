@@ -4,9 +4,7 @@ RUN apk add curl
 RUN curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh > miniconda3.sh
 RUN chmod +x miniconda3.sh
 
-FROM ubuntu:18.04
-
-RUN apt-get update && apt-get install -y python3.7
+FROM python:3.7
 
 COPY --from=builder miniconda3.sh .
 RUN ./miniconda3.sh -b
